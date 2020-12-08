@@ -113,10 +113,11 @@ class LogAnalyzer:
         for block in self.agg.blocks.values():
             block_txs_list.append(block.txs)
             block_size_list.append(block.size)
+            #print(block.timestamp)
             block_timestamp_list.append(block.timestamp)
             referee_count_list.append(len(block.referees))
             # Ignore the empty warm-up blocks at the start
-            if block.txs > 0:
+            if block.txs >= 0:
                 ts = block.timestamp
                 if ts < min_time:
                     min_time = ts
@@ -142,6 +143,7 @@ class LogAnalyzer:
 
         tx_sum = sum(block_txs_list)
         print("{} txs generated".format(tx_sum))
+        print("max = {}, min = {}".format(max_time, min_time))
         print("Throughput is {}".format(tx_sum / (max_time - min_time)))
         slowest_tx_latency = self.agg.get_largest_min_tx_packed_latency_hash()
         if slowest_tx_latency is not None:
