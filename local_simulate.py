@@ -3,6 +3,7 @@ import sys, os
 from eth_utils import decode_hex
 from rlp.sedes import Binary, BigEndianInt
 import time
+from argparse import ArgumentParser, SUPPRESS
 
 sys.path.insert(1, os.path.dirname(sys.path[0]))
 
@@ -10,14 +11,56 @@ from conflux import utils
 from conflux.rpc import RpcClient
 from conflux.utils import encode_hex, bytes_to_int, priv_to_addr, parse_as_int
 from test_framework.blocktools import create_block
-from test_framework.test_framework import ConfluxTestFramework
+from test_framework.test_framework import ConfluxTestFramework, OptionHelper
 from test_framework.mininode import *
 from test_framework.util import *
 
 class LocalTest(ConfluxTestFramework):
+
+    # add the 2nd layer option here
+
+    PASS_TO_CONFLUX_OPTIONS = dict(
+        num_nodes = 3,
+        egress_min_throttle = 512,
+        egress_max_throttle = 1024,
+        egress_queue_capacity = 2048,
+        genesis_secrets = "/home/zmx/conflux-rust/genesis_secrets_10000.txt",
+        send_tx_period_ms = 1300,
+        txgen_account_count = 100,
+        tx_pool_size = conflux.config.default_conflux_conf["tx_pool_size"],
+        max_block_size_in_bytes = conflux.config.default_config["MAX_BLOCK_SIZE_IN_BYTES"],
+        coordinate_update_timeout_ms = 1000,
+        cluster_round_timeout = 5000,
+        cluster_num = 3,
+        fast_peer_local_group = 2,
+        fast_peer_remote_group = 1,
+        fast_root_peer_per_group = 1,
+    )
+
     def set_test_params(self):
-        self.num_nodes = 12 ## 8
+        self.num_nodes = None ## 8
         self.tps = 50
+
+        self.stop_probability = 0.02
+        self.clean_probability = 0.5
+
+    
+    def after_options_parsed(self):
+        ConfluxTestFramework.after_options_parsed(self)
+
+        self.conf_parameters = OptionHelper.conflux_options_to_config(
+            vars(self.options), LocalTest.PASS_TO_CONFLUX_OPTIONS)
+
+        self.num_nodes = self.options.num_nodes
+        print(self.num_nodes)
+        print(self.conf_parameters["genesis_secrets"])
+
+        self.all_nodes = list(range(0, self.num_nodes))
+        #arc_nodes = self.num_nodes // 2
+        arc_nodes = 1
+        self.archive_nodes = list(range(0, arc_nodes))
+        self.full_nodes = list(range(arc_nodes, self.num_nodes))
+
 
         self.conf_parameters["generate_tx"] = "true"
         # Every node generates 1 tx every second
@@ -28,16 +71,11 @@ class LocalTest(ConfluxTestFramework):
         self.conf_parameters["era_epoch_count"] = "100"
         self.conf_parameters["dev_snapshot_epoch_count"] = "50"
         self.conf_parameters["anticone_penalty_ratio"] = "10"
-        self.conf_parameters["genesis_secrets"] = "'/home/zmx/conflux-rust/genesis_secrets.txt'"
+        #self.conf_parameters["genesis_secrets"] = ""
 
-        self.stop_probability = 0.02
-        self.clean_probability = 0.5
-
-        self.all_nodes = list(range(0, self.num_nodes))
-        #arc_nodes = self.num_nodes // 2
-        arc_nodes = 1
-        self.archive_nodes = list(range(0, arc_nodes))
-        self.full_nodes = list(range(arc_nodes, self.num_nodes))
+    def add_options(self, parser:ArgumentParser):
+        #OptionHelper.add_options(parser, RemoteSimulate.SIMULATE_OPTIONS)
+        OptionHelper.add_options(parser, LocalTest.PASS_TO_CONFLUX_OPTIONS)
 
     def setup_nodes(self):
         self.add_nodes(self.num_nodes)
@@ -62,12 +100,12 @@ class LocalTest(ConfluxTestFramework):
     '''
     def init_txgen(self):
         print("init_txgen")
-        self.options.txgen_account_count = int((os.path.getsize("/home/zmx/conflux-rust/genesis_secrets.txt")/65) //
+        start_time = time.time()
+        self.options.txgen_account_count = int((os.path.getsize("/home/zmx/conflux-rust/genesis_secrets_10000.txt")/65) //
                                                (len(self.nodes)))
         print(self.options.txgen_account_count)
         #if self.enable_tx_propagation:
             #setup usable accounts
-        start_time = time.time()
         current_index=0
         for i in range(len(self.nodes)):
             client = RpcClient(self.nodes[i])
