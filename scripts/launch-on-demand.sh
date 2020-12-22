@@ -22,6 +22,10 @@ else
     public="--public"
 fi
 
+echo $image
+touch ~/output.txt
+echo $image > ~/output.txt
+
 if [[ -f instances ]]; then
     mv instances instances_old
 fi

@@ -48,11 +48,15 @@ fi
 
 git fetch --all
 git checkout $repo/$branch
+git submodule update --init --recursive --depth 1
 export RUSTFLAGS="-g" && cargo build --release #--features "deadlock_detection"
+#cargo build --release #--features "deadlock_detection"
 ./dev-support/dep_pip3.sh
 cd tests/scripts
 wget https://s3-ap-southeast-1.amazonaws.com/conflux-test/genesis_secrets.txt
-cp ../../target/release/conflux throttle_bitcoin_bandwidth.sh remote_start_conflux.sh remote_collect_log.sh stat_latency_map_reduce.py genesis_secrets.txt ~
+cp genesis_secrets.txt ../../target/release/conflux ~
+cd tests/extra-test-toolkits/scripts
+cp throttle_bitcoin_bandwidth.sh remote_start_conflux.sh remote_collect_log.sh stat_latency_map_reduce.py ~
 
 # Remove process number limit.
 echo "LABEL=cloudimg-rootfs   /        ext4   defaults,noatime,nodiratime,barrier=0       0 0" > fstab
