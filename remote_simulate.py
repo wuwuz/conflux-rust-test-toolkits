@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import sys, os
+sys.path.insert(1, os.path.dirname(sys.path[0]))
 
 from argparse import ArgumentParser, SUPPRESS
 from collections import Counter
@@ -7,6 +9,8 @@ import rlp
 import tarfile
 from concurrent.futures import ThreadPoolExecutor
 
+#from ..conflux import config
+#from conflux import config
 import conflux.config
 from conflux.rpc import RpcClient
 from conflux.utils import encode_hex, bytes_to_int, priv_to_addr, parse_as_int, pub_to_addr
