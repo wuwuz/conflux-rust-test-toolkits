@@ -24,35 +24,35 @@ run_latency_exp () {
     max_block_size_in_bytes=$4
 
     #1) Create master instance and slave image
-    ./create_slave_image.sh $key_pair $branch $repo
-    ./ip.sh --public
+    #./create_slave_image.sh $key_pair $branch $repo
+    #./ip.sh --public
 
     #2) Launch slave instances
-    #master_ip=`cat ips`
-    #slave_image=`cat slave_image`
-    #ssh ubuntu@${master_ip} "cd ./conflux-rust/tests/scripts;rm exp.log;rm -rf ~/.ssh/known_hosts;./launch-on-demand.sh $slave_count $key_pair $slave_role $slave_image;"
+    master_ip=`cat ips`
+    slave_image=`cat slave_image`
+    #ssh ubuntu@${master_ip} "cd ./conflux-rust/tests/extra-test-toolkits/scripts;rm exp.log;rm -rf ~/.ssh/known_hosts;./launch-on-demand.sh $slave_count $key_pair $slave_role $slave_image;"
 
     # The images already have the compiled binary setup in `setup_image.sh`,
     # but we can use the following to recompile if we have code updated after image setup.
-    #ssh ubuntu@${master_ip} "cd ./conflux-rust/tests/scripts;export RUSTFLAGS=\"-g\" && cargo build --release ;\
+    #ssh ubuntu@${master_ip} "cd ./conflux-rust/tests/extra-test-toolkits/scripts;export RUSTFLAGS=\"-g\" && cargo build --release ;\
     #parallel-scp -O \"StrictHostKeyChecking no\" -h ips -l ubuntu -p 1000 ../../target/release/conflux ~ |grep FAILURE|wc -l;"
 
     #4) Run experiments
-    #flamegraph_option=""
-    #if [ $enable_flamegraph = true ]; then
-    #    flamegraph_option="--enable-flamegraph"
-    #fi
-    #ssh -tt ubuntu@${master_ip} "cd ./conflux-rust/tests/scripts;python3 ./exp_latency.py \
-    #--vms $slave_count \
-    #--batch-config \"$exp_config\" \
-    #--storage-memory-gb 16 \
-    #--bandwidth 20 \
-    #--tps $tps \
-    #--send-tx-period-ms 200 \
-    #$flamegraph_option \
-    #--nodes-per-host $nodes_per_host \
-    #--max-block-size-in-bytes $max_block_size_in_bytes \
-    #--enable-tx-propagation "
+    flamegraph_option=""
+    if [ $enable_flamegraph = true ]; then
+        flamegraph_option="--enable-flamegraph"
+    fi
+    ssh -tt ubuntu@${master_ip} "cd ./conflux-rust/tests/; python3 ./extra-test-toolkits/scripts/exp_latency.py \
+    --vms $slave_count \
+    --batch-config \"$exp_config\" \
+    --storage-memory-gb 16 \
+    --bandwidth 20 \
+    --tps $tps \
+    --send-tx-period-ms 200 \
+    $flamegraph_option \
+    --nodes-per-host $nodes_per_host \
+    --max-block-size-in-bytes $max_block_size_in_bytes \
+    --enable-tx-propagation "
 
     #5) Terminate slave instances
 
@@ -64,13 +64,13 @@ run_latency_exp () {
     #cd ..
 
     # Download results
-    #archive_file="exp_stat_latency.tgz"
-    #log="exp_stat_latency.log"
-    #scp ubuntu@${master_ip}:~/conflux-rust/tests/scripts/${archive_file} .
-    #tar xfvz $archive_file
-    #cat $log
-    #mv $archive_file ${archive_file}.`date +%s`
-    #mv $log ${log}.`date +%s`
+    archive_file="exp_stat_latency.tgz"
+    log="exp_stat_latency.log"
+    scp ubuntu@${master_ip}:~/conflux-rust/tests/extra-test-toolkits/scripts/${archive_file} .
+    tar xfvz $archive_file
+    cat $log
+    mv $archive_file ${archive_file}.`date +%s`
+    mv $log ${log}.`date +%s`
 }
 
 # Parameter for one experiment is <block_gen_interval_ms>:<txs_per_block>:<tx_size>:<num_blocks>
