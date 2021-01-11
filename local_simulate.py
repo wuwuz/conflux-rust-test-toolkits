@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 import sys, os
+sys.path.insert(1, os.path.dirname(sys.path[0]))
+
+#sys.path.
+
 from eth_utils import decode_hex
 from rlp.sedes import Binary, BigEndianInt
 import time
 from argparse import ArgumentParser, SUPPRESS
 
-sys.path.insert(1, os.path.dirname(sys.path[0]))
 
 from conflux import utils
 from conflux.rpc import RpcClient
@@ -20,7 +23,7 @@ class LocalTest(ConfluxTestFramework):
     # add the 2nd layer option here
 
     PASS_TO_CONFLUX_OPTIONS = dict(
-        num_nodes = 3,
+        num_nodes = 9,
         egress_min_throttle = 512,
         egress_max_throttle = 1024,
         egress_queue_capacity = 2048,
@@ -30,11 +33,13 @@ class LocalTest(ConfluxTestFramework):
         tx_pool_size = conflux.config.default_conflux_conf["tx_pool_size"],
         max_block_size_in_bytes = conflux.config.default_config["MAX_BLOCK_SIZE_IN_BYTES"],
         coordinate_update_timeout_ms = 1000,
+        max_outgoing_peers = 8,
         cluster_round_timeout = 5000,
         cluster_num = 3,
-        fast_peer_local_group = 2,
-        fast_peer_remote_group = 1,
-        fast_root_peer_per_group = 1,
+        fast_peer_local_group = 3,
+        first_hop_peers = 3,
+        node_id_file = "/home/zmx/conflux-rust/node_id.txt",
+        coordinate_file = "/home/zmx/conflux-rust/coordinate.txt",
     )
 
     def set_test_params(self):
@@ -90,14 +95,15 @@ class LocalTest(ConfluxTestFramework):
             self.start_node(i, extra_args=["--full"], phase_to_wait=None)
 
     # testing... remove the comment here
-    '''
     def setup_network(self):
         self.setup_nodes()
+        write_node_id_file(self.nodes, LocalTest.PASS_TO_CONFLUX_OPTIONS["node_id_file"])
         # Make all nodes fully connected, so a crashed archive node can be connected to another
         # archive node to catch up
         connect_sample_nodes(self.nodes, self.log, sample=self.num_nodes - 1)
+        #connect_sample_nodes(self.nodes, self.log, sample=3)
         sync_blocks(self.nodes)
-    '''
+
     def init_txgen(self):
         print("init_txgen")
         start_time = time.time()
@@ -132,7 +138,7 @@ class LocalTest(ConfluxTestFramework):
         for i in range(1, block_number):
             chosen_peer = random.randint(0, self.num_nodes - 1)
             #self.maybe_restart_node(chosen_peer, self.stop_probability, self.clean_probability)
-            self.log.debug("%d try to generate", chosen_peer)
+            self.log.info("%d try to generate", chosen_peer)
             block_hash = RpcClient(self.nodes[chosen_peer]).generate_block(random.randint(10, 100))
             self.log.info("%d generate block %s", chosen_peer, block_hash)
             time.sleep(random.random()/15)

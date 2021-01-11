@@ -57,6 +57,7 @@ export RUSTFLAGS="-g" && cargo build --release #--features "deadlock_detection"
 cd tests/scripts
 wget https://s3-ap-southeast-1.amazonaws.com/conflux-test/genesis_secrets.txt
 cp genesis_secrets.txt ../../target/release/conflux ~
+cp genesis_secrets.txt ../extra-test-toolkits/scripts/genesis_secrets.txt
 cd tests/extra-test-toolkits/scripts
 git status
 cp throttle_bitcoin_bandwidth.sh remote_start_conflux.sh remote_collect_log.sh stat_latency_map_reduce.py ~

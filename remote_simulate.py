@@ -78,7 +78,9 @@ class RemoteSimulate(ConfluxTestFramework):
         send_tx_period_ms = 1300,
         txgen_account_count = 1000,
         tx_pool_size = conflux.config.default_conflux_conf["tx_pool_size"],
-        max_block_size_in_bytes = conflux.config.default_config["MAX_BLOCK_SIZE_IN_BYTES"]
+        max_block_size_in_bytes = conflux.config.default_config["MAX_BLOCK_SIZE_IN_BYTES"],
+        node_id_file = "/home/ubuntu/conflux-rust/node_id.txt",
+        coordinate_file = "/home/ubuntu/conflux-rust/coordinate.txt",
     )
 
     def add_options(self, parser:ArgumentParser):
@@ -161,6 +163,16 @@ class RemoteSimulate(ConfluxTestFramework):
         self.log.info("Starting remote nodes ...")
         self.start_nodes()
         self.log.info("All nodes started, waiting to be connected")
+
+        write_node_id_file(self.nodes, RemoteSimulate.PASS_TO_CONFLUX_OPTIONS["node_id_file"])
+        files = [
+            RemoteSimulate.PASS_TO_CONFLUX_OPTIONS["node_id_file"],
+            RemoteSimulate.PASS_TO_CONFLUX_OPTIONS["coordinate_file"],
+        ]
+
+        for file in files:
+            pscp(self.options.ips_file, file, "~/conflux-rust", 3, "copy necessary node id and coordinate file to remote nodes")
+
 
         connect_sample_nodes(self.nodes, self.log, sample=self.options.connect_peers, timeout=120)
 

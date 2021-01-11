@@ -77,6 +77,7 @@ class LatencyExperiment:
         OptionHelper.add_options(parser, remote_simulate_options)
         self.options = parser.parse_args()
 
+        print(os.path.abspath(os.getcwd()))
         if os.path.getsize("./genesis_secrets.txt") % 65 != 0:
             print("genesis secrets account error, file size should be multiple of 65")
             exit()

@@ -1,0 +1,10 @@
+*.log
+*.html
+*.csv
+*.log.*
+*.tgz.*
+*instances
+*ips
+*ips_old
+*pycache*
+*slave_image

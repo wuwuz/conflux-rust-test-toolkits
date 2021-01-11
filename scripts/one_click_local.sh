@@ -2,7 +2,7 @@
 log_dir="$(mktemp -d /tmp/conflux_test_XXXXXX)"
 echo $log_dir
 
-python3 ../local_simulate.py --tmpdir $log_dir --num-nodes 12 --cluster-num 3
+python3 ../local_simulate.py --tmpdir $log_dir --num-nodes 3 --cluster-num 3
 python3 stat_latency_map_reduce.py $log_dir "$log_dir/blocks.log"
 
 #find $log_dir -name conflux.log | xargs grep -i "thrott" > throttle.log
