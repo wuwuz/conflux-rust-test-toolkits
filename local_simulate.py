@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import sys, os
 sys.path.insert(1, os.path.dirname(sys.path[0]))
+username = os.environ.get('USER')
+print(username)
 
 #sys.path.
 
@@ -27,7 +29,7 @@ class LocalTest(ConfluxTestFramework):
         egress_min_throttle = 512,
         egress_max_throttle = 1024,
         egress_queue_capacity = 2048,
-        genesis_secrets = "/home/zmx/conflux-rust/genesis_secrets_10000.txt",
+        genesis_secrets = "/home/" + username + "/conflux-rust/genesis_secrets_10000.txt",
         send_tx_period_ms = 1300,
         txgen_account_count = 100,
         tx_pool_size = conflux.config.default_conflux_conf["tx_pool_size"],
@@ -38,8 +40,8 @@ class LocalTest(ConfluxTestFramework):
         cluster_num = 3,
         fast_peer_local_group = 3,
         first_hop_peers = 3,
-        node_id_file = "/home/zmx/conflux-rust/node_id.txt",
-        coordinate_file = "/home/zmx/conflux-rust/coordinate.txt",
+        node_id_file = "/home/" + username + "/conflux-rust/node_id.txt",
+        coordinate_file = "/home/" + username + "/conflux-rust/coordinate.txt",
     )
 
     def set_test_params(self):
@@ -107,7 +109,7 @@ class LocalTest(ConfluxTestFramework):
     def init_txgen(self):
         print("init_txgen")
         start_time = time.time()
-        self.options.txgen_account_count = int((os.path.getsize("/home/zmx/conflux-rust/genesis_secrets_10000.txt")/65) //
+        self.options.txgen_account_count = int((os.path.getsize("/home/" + username + "/conflux-rust/genesis_secrets_10000.txt")/65) //
                                                (len(self.nodes)))
         print(self.options.txgen_account_count)
         #if self.enable_tx_propagation:
