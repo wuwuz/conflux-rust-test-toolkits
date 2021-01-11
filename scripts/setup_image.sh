@@ -50,6 +50,7 @@ git fetch --all
 git checkout $repo/$branch
 git status
 cat .gitmodules
+git submodule sync
 git submodule update --init --recursive
 export RUSTFLAGS="-g" && cargo build --release #--features "deadlock_detection"
 #cargo build --release #--features "deadlock_detection"

@@ -6,7 +6,7 @@ set -euxo pipefail
 #    exit 1
 #fi
 key_pair="zhoumingxun"
-slave_count=8
+slave_count=3
 #slave_count=min($2)
 #branch="${3:-master}"
 branch="${3:-coordinate}"
@@ -15,7 +15,14 @@ repo="${4:-https://github.com/wuwuz/conflux-rust}"
 enable_flamegraph=${5:-false}
 slave_role=${key_pair}_exp_slave
 
-nodes_per_host=4
+create_master=true
+create_slave=true
+run_exp=true
+download=true
+shut_slave=true
+shut_master=false
+
+nodes_per_host=1
 
 run_latency_exp () {
     branch=$1
@@ -24,8 +31,10 @@ run_latency_exp () {
     max_block_size_in_bytes=$4
 
     #1) Create master instance and slave image
-    #./create_slave_image.sh $key_pair $branch $repo
-    #./ip.sh --public
+    if [ $create_master = true ]; then
+        ./create_slave_image.sh $key_pair $branch $repo
+        ./ip.sh --public
+    fi
 
     #2) Launch slave instances
 
@@ -34,7 +43,9 @@ run_latency_exp () {
 
     # re-compile
     #ssh ubuntu@${master_ip} "cd ./conflux-rust/tests/extra-test-toolkits/scripts;export RUSTFLAGS=\"-g\" && cargo build --release ;"
-    ssh ubuntu@${master_ip} "cd ./conflux-rust/tests/extra-test-toolkits/scripts;rm exp.log;rm -rf ~/.ssh/known_hosts;./launch-on-demand.sh $slave_count $key_pair $slave_role $slave_image;"
+    if [ $create_slave = true ]; then
+        ssh ubuntu@${master_ip} "cd ./conflux-rust/tests/extra-test-toolkits/scripts;rm exp.log;rm -rf ~/.ssh/known_hosts;./launch-on-demand.sh $slave_count $key_pair $slave_role $slave_image;"
+    fi
 
     # The images already have the compiled binary setup in `setup_image.sh`,
     # but we can use the following to recompile if we have code updated after image setup.
@@ -45,39 +56,45 @@ run_latency_exp () {
 
     #4) Run experiments
 
-    flamegraph_option=""
-    if [ $enable_flamegraph = true ]; then
-        flamegraph_option="--enable-flamegraph"
+    if [ $run_exp = true ]; then
+        flamegraph_option=""
+        if [ $enable_flamegraph = true ]; then
+            flamegraph_option="--enable-flamegraph"
+        fi
+        ssh -tt ubuntu@${master_ip} "export PYTHONPATH=\${PYTHONPATH}:\${HOME}/conflux-rust/tests; cd ./conflux-rust/tests/extra-test-toolkits/scripts/; python3 exp_latency.py \
+        --vms $slave_count \
+        --batch-config \"$exp_config\" \
+        --storage-memory-gb 16 \
+        --bandwidth 20 \
+        --tps $tps \
+        --send-tx-period-ms 1300 \
+        $flamegraph_option \
+        --nodes-per-host $nodes_per_host \
+        --max-block-size-in-bytes $max_block_size_in_bytes \
+        --enable-tx-propagation "
     fi
-    ssh -tt ubuntu@${master_ip} "export PYTHONPATH=\${PYTHONPATH}:\${HOME}/conflux-rust/tests; cd ./conflux-rust/tests/extra-test-toolkits/scripts/; python3 exp_latency.py \
-    --vms $slave_count \
-    --batch-config \"$exp_config\" \
-    --storage-memory-gb 16 \
-    --bandwidth 20 \
-    --tps $tps \
-    --send-tx-period-ms 1300 \
-    $flamegraph_option \
-    --nodes-per-host $nodes_per_host \
-    --max-block-size-in-bytes $max_block_size_in_bytes \
-    --enable-tx-propagation "
 
     #5) Terminate slave instances
 
-    rm -rf tmp_data
-    mkdir tmp_data
-    cd tmp_data
-    ../list-on-demand.sh $slave_role || true
-    ../terminate-on-demand.sh
-    cd ..
+    if [ $shut_slave = true ]; then
+        rm -rf tmp_data
+        mkdir tmp_data
+        cd tmp_data
+        ../list-on-demand.sh $slave_role || true
+        ../terminate-on-demand.sh
+        cd ..
+    fi
 
     # Download results
-    archive_file="exp_stat_latency.tgz"
-    log="exp_stat_latency.log"
-    scp ubuntu@${master_ip}:~/conflux-rust/tests/extra-test-toolkits/scripts/${archive_file} .
-    tar xfvz $archive_file
-    cat $log
-    mv $archive_file ${archive_file}.`date +%s`
-    mv $log ${log}.`date +%s`
+    if [ $download = true ]; then
+        archive_file="exp_stat_latency.tgz"
+        log="exp_stat_latency.log"
+        scp ubuntu@${master_ip}:~/conflux-rust/tests/extra-test-toolkits/scripts/${archive_file} .
+        tar xfvz $archive_file
+        cat $log
+        mv $archive_file ${archive_file}.`date +%s`
+        mv $log ${log}.`date +%s`
+    fi
 }
 
 # Parameter for one experiment is <block_gen_interval_ms>:<txs_per_block>:<tx_size>:<num_blocks>
@@ -96,6 +113,6 @@ run_latency_exp $branch $exp_config $tps $max_block_size_in_bytes
 # Terminate master instance and delete slave images
 # Comment this line if the data on the master instances are needed for further analysis
 
-
-
-#./terminate-on-demand.sh
+if [ $shut_master = true ]; then
+    ./terminate-on-demand.sh
+fi
