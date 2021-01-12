@@ -81,6 +81,12 @@ class RemoteSimulate(ConfluxTestFramework):
         max_block_size_in_bytes = conflux.config.default_config["MAX_BLOCK_SIZE_IN_BYTES"],
         node_id_file = "/home/ubuntu/conflux-rust/node_id.txt",
         coordinate_file = "/home/ubuntu/conflux-rust/coordinate.txt",
+        max_outgoing_peers = 8,
+        cluster_round_timeout = 5000,
+        coordinate_update_timeout_ms = 1000,
+        cluster_num = 3,
+        fast_peer_local_group = 3,
+        first_hop_peers = 3,
     )
 
     def add_options(self, parser:ArgumentParser):

@@ -15,14 +15,15 @@ repo="${4:-https://github.com/wuwuz/conflux-rust}"
 enable_flamegraph=${5:-false}
 slave_role=${key_pair}_exp_slave
 
-create_master=true
+create_master=false
 create_slave=true
+recompile=true
 run_exp=true
 download=true
 shut_slave=true
 shut_master=false
 
-nodes_per_host=1
+nodes_per_host=4
 
 run_latency_exp () {
     branch=$1
@@ -49,8 +50,10 @@ run_latency_exp () {
 
     # The images already have the compiled binary setup in `setup_image.sh`,
     # but we can use the following to recompile if we have code updated after image setup.
-    #ssh ubuntu@${master_ip} "cd ./conflux-rust/tests/extra-test-toolkits/scripts;export RUSTFLAGS=\"-g\" && cargo build --release ;"
-    #parallel-scp -O \"StrictHostKeyChecking no\" -h ips -l ubuntu -p 1000 ../../target/release/conflux ~ |grep FAILURE|wc -l;"
+    if [ $recompile = true ]; then
+        ssh ubuntu@${master_ip} "cd ./conflux-rust/tests/extra-test-toolkits/scripts;export RUSTFLAGS=\"-g\" && cargo build --release ; \
+        parallel-scp -O \"StrictHostKeyChecking no\" -h ips -l ubuntu -p 1000 ../../target/release/conflux ~ |grep FAILURE|wc -l;" 
+    fi
 
     #TODO : add cp genesis_secrets.txt
 

@@ -46,7 +46,7 @@ class LocalTest(ConfluxTestFramework):
 
     def set_test_params(self):
         self.num_nodes = None ## 8
-        self.tps = 50
+        self.tps = 100
 
         self.stop_probability = 0.02
         self.clean_probability = 0.5
@@ -99,6 +99,7 @@ class LocalTest(ConfluxTestFramework):
     # testing... remove the comment here
     def setup_network(self):
         self.setup_nodes()
+        #FIXME
         write_node_id_file(self.nodes, LocalTest.PASS_TO_CONFLUX_OPTIONS["node_id_file"])
         # Make all nodes fully connected, so a crashed archive node can be connected to another
         # archive node to catch up
@@ -125,7 +126,7 @@ class LocalTest(ConfluxTestFramework):
     def run_test(self):
         self.init_txgen()
 
-        block_number = 200
+        block_number = 2000
 
         # Setup balance for each node
         client = RpcClient(self.nodes[0])
