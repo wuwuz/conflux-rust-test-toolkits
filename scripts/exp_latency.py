@@ -71,7 +71,7 @@ class LatencyExperiment:
         # Configs with different default values than RemoteSimulate
         remote_simulate_options["nodes_per_host"] = 1
         remote_simulate_options["storage_memory_gb"] = 2
-        remote_simulate_options["connect_peers"] = 8
+        remote_simulate_options["connect_peers"] = 4
         remote_simulate_options["tps"] = 4000
 
         OptionHelper.add_options(parser, remote_simulate_options)
