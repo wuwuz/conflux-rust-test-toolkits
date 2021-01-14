@@ -182,7 +182,7 @@ class RemoteSimulate(ConfluxTestFramework):
             pscp(self.options.ips_file, file, "~/conflux-rust", 3, "copy necessary node id and coordinate file to remote nodes")
 
 
-        connect_sample_nodes(self.nodes, self.log, sample=self.options.connect_peers, timeout=120)
+        connect_sample_nodes(self.nodes, self.log, sample=self.options.connect_peers, timeout=240)
 
         self.wait_until_nodes_synced()
 
