@@ -29,10 +29,11 @@ do
 	wd=$root_dir/node$nid
 	echo "start node $nid: $wd ..."
 	cd $wd
+	output="~/node$nid.out"
 	
 	if [ $flamegraph_enabled = true ]; then
-		nohup cgexec -g net_cls:limit$i flamegraph -o $root_dir/node$nid/conflux.svg ~/conflux --config $root_dir/node$nid/conflux.conf --public-address $ip_addr:$(($p2p_port_start+$nid)) &
+		nohup cgexec -g net_cls:limit$i flamegraph -o $root_dir/node$nid/conflux.svg ~/conflux --config $root_dir/node$nid/conflux.conf --public-address $ip_addr:$(($p2p_port_start+$nid)) & > $output &
 	else
-		nohup cgexec -g net_cls:limit$i ~/conflux --config $root_dir/node$nid/conflux.conf --public-address $ip_addr:$(($p2p_port_start+$nid)) &
+		nohup cgexec -g net_cls:limit$i ~/conflux --config $root_dir/node$nid/conflux.conf --public-address $ip_addr:$(($p2p_port_start+$nid)) & > $output &
 	fi
 done

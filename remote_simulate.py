@@ -58,7 +58,7 @@ class RemoteSimulate(ConfluxTestFramework):
         bandwidth = 20,
         connect_peers = 3,
         enable_flamegraph = False,
-        enable_tx_propagation = False,
+        enable_tx_propagation = True,
         ips_file = "ips",
         generation_period_ms = 500,
         nodes_per_host = 3,
@@ -152,7 +152,7 @@ class RemoteSimulate(ConfluxTestFramework):
         cmd_kill_conflux = "killall -9 conflux || echo already killed"
         cmd_cleanup = "rm -rf /tmp/conflux_test_*"
         cmd_setup = "tar zxf conflux_conf.tgz -C /tmp"
-        cmd_startup = "./remote_start_conflux.sh {} {} {} {} {}&> start_conflux.out".format(
+        cmd_startup = "./remote_start_conflux.sh {} {} {} {} {}&".format(
             self.options.tmpdir, p2p_port(0), self.options.nodes_per_host,
             self.options.bandwidth, str(self.options.enable_flamegraph).lower()
         )
