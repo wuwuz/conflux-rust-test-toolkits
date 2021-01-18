@@ -6,7 +6,7 @@ set -euxo pipefail
 #    exit 1
 #fi
 key_pair="zhoumingxun"
-slave_count=3
+slave_count=12
 #slave_count=min($2)
 #branch="${3:-master}"
 branch="${3:-coordinate}"
@@ -15,11 +15,13 @@ repo="${4:-https://github.com/wuwuz/conflux-rust}"
 enable_flamegraph=${5:-false}
 slave_role=${key_pair}_exp_slave
 
+create_and_run=true
+
 create_master=false
-create_slave=true
-recompile=true
-run_exp=true
-download=true
+create_slave=$create_and_run
+recompile=$create_and_run
+run_exp=$create_and_run
+download=$create_and_run
 shut_slave=true
 shut_master=false
 
@@ -50,9 +52,12 @@ run_latency_exp () {
 
     # The images already have the compiled binary setup in `setup_image.sh`,
     # but we can use the following to recompile if we have code updated after image setup.
+    #parallel-scp -O \"StrictHostKeyChecking no\" -h ips -l ubuntu -p 1000 ../../../target/release/conflux ~/conflux-rust/target/release/conflux |grep FAILURE|wc -l;" 
     if [ $recompile = true ]; then
-        ssh ubuntu@${master_ip} "cd ./conflux-rust/tests/extra-test-toolkits/scripts;export RUSTFLAGS=\"-g\" && cargo build --release ; \
-        parallel-scp -O \"StrictHostKeyChecking no\" -h ips -l ubuntu -p 1000 ../../target/release/conflux ~ |grep FAILURE|wc -l;" 
+        ssh ubuntu@${master_ip} "cd ./conflux-rust; git pull downstream ${branch}; git checkout ${branch}; git submodule update --init --recursive;"
+        ssh ubuntu@${master_ip} "cd ./conflux-rust/tests/extra-test-toolkits/scripts;export RUSTFLAGS=-g && cargo build --release ; \
+        parallel-scp -O \"StrictHostKeyChecking no\" -h ips -l ubuntu -p 1000 ../../../target/release/conflux ~ |grep FAILURE|wc -l;" 
+        ssh ubuntu@${master_ip} "cd ./conflux-rust/tests/extra-test-toolkits/scripts; parallel-scp -O \"StrictHostKeyChecking no\" -h ips -l ubuntu -p 1000 throttle_bitcoin_bandwidth.sh remote_start_conflux.sh remote_collect_log.sh stat_latency_map_reduce.py  ~ |grep FAILURE|wc -l" 
     fi
 
     #TODO : add cp genesis_secrets.txt
@@ -74,7 +79,12 @@ run_latency_exp () {
         $flamegraph_option \
         --nodes-per-host $nodes_per_host \
         --max-block-size-in-bytes $max_block_size_in_bytes \
-        --enable-tx-propagation "
+        --enable-tx-propagation \
+        --cluster-num 3 \
+        --fast-peer-local-group 4 \
+        --min-peers-tx-propagation 8 \
+        --max-peers-tx-propagation 8 \
+        --first-hop-peers 8"
     fi
 
     #5) Terminate slave instances
@@ -103,12 +113,12 @@ run_latency_exp () {
 # Parameter for one experiment is <block_gen_interval_ms>:<txs_per_block>:<tx_size>:<num_blocks>
 # Different experiments in a batch is divided by commas
 # Example: "250:1:150000:1000,250:1:150000:1000,250:1:150000:1000,250:1:150000:1000"
-exp_config="500:1:300000:200"
+exp_config="500:1:300000:1000"
 
 # For experiments with --enable-tx-propagation , <txs_per_block> and <tx_size> will not take effects.
 # Block size is limited by `max_block_size_in_bytes`.
 
-tps=3000
+tps=100
 max_block_size_in_bytes=600000
 echo "start run $branch"
 run_latency_exp $branch $exp_config $tps $max_block_size_in_bytes
