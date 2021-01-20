@@ -42,6 +42,8 @@ class LocalTest(ConfluxTestFramework):
         first_hop_peers = 3,
         node_id_file = "/home/" + username + "/conflux-rust/node_id.txt",
         coordinate_file = "/home/" + username + "/conflux-rust/coordinate.txt",
+        max_peers_tx_propagation=16,
+        min_peers_tx_propagation=16,
     )
 
     def set_test_params(self):
@@ -103,7 +105,8 @@ class LocalTest(ConfluxTestFramework):
         write_node_id_file(self.nodes, LocalTest.PASS_TO_CONFLUX_OPTIONS["node_id_file"])
         # Make all nodes fully connected, so a crashed archive node can be connected to another
         # archive node to catch up
-        connect_sample_nodes(self.nodes, self.log, sample=self.num_nodes - 1)
+        #connect_sample_nodes(self.nodes, self.log, sample=self.num_nodes - 1)
+        connect_sample_nodes(self.nodes, self.log, sample=3)
         #connect_sample_nodes(self.nodes, self.log, sample=3)
         sync_blocks(self.nodes)
 
@@ -126,7 +129,7 @@ class LocalTest(ConfluxTestFramework):
     def run_test(self):
         self.init_txgen()
 
-        block_number = 2000
+        block_number = 200
 
         # Setup balance for each node
         client = RpcClient(self.nodes[0])

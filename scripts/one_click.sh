@@ -6,10 +6,11 @@ set -euxo pipefail
 #    exit 1
 #fi
 key_pair="zhoumingxun"
-slave_count=12
+slave_count=50
 #slave_count=min($2)
 #branch="${3:-master}"
-branch="${3:-coordinate}"
+#branch="${3:-coordinate}"
+branch="${3:-highfanout}"
 #repo="${4:-https://github.com/Conflux-Chain/conflux-rust}"
 repo="${4:-https://github.com/wuwuz/conflux-rust}"
 enable_flamegraph=${5:-false}
@@ -75,16 +76,18 @@ run_latency_exp () {
         --storage-memory-gb 16 \
         --bandwidth 20 \
         --tps $tps \
-        --send-tx-period-ms 1300 \
+        --send-tx-period-ms 500 \
         $flamegraph_option \
         --nodes-per-host $nodes_per_host \
         --max-block-size-in-bytes $max_block_size_in_bytes \
         --enable-tx-propagation \
-        --cluster-num 3 \
-        --fast-peer-local-group 4 \
+        --cluster-num 6 \
+        --max-outgoing-peers 100 \
+        --max-incoming-peers 100 \
+        --fast-peer-local-group 5 \
         --min-peers-tx-propagation 8 \
         --max-peers-tx-propagation 8 \
-        --first-hop-peers 8"
+        --first-hop-peers 200"
     fi
 
     #5) Terminate slave instances
