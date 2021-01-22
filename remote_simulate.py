@@ -82,6 +82,7 @@ class RemoteSimulate(ConfluxTestFramework):
         node_id_file = "/home/ubuntu/conflux-rust/node_id.txt",
         coordinate_file = "/home/ubuntu/conflux-rust/coordinate.txt",
         max_outgoing_peers = 16,
+        max_incoming_peers = 64,
         cluster_round_timeout = 10000,
         coordinate_update_timeout_ms = 5000,
         cluster_num = 8,
