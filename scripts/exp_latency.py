@@ -78,10 +78,10 @@ class LatencyExperiment:
         self.options = parser.parse_args()
 
         print(os.path.abspath(os.getcwd()))
-        if os.path.getsize("./genesis_secrets.txt") % 65 != 0:
+        if os.path.getsize("~/genesis_secrets.txt") % 65 != 0:
             print("genesis secrets account error, file size should be multiple of 65")
             exit()
-        self.options.txgen_account_count = int((os.path.getsize("./genesis_secrets.txt")/65) //
+        self.options.txgen_account_count = int((os.path.getsize("~/genesis_secrets.txt")/65) //
                                                (self.options.vms * self.options.nodes_per_host))
 
     def run(self):
