@@ -4,7 +4,7 @@
 # source: https://stackoverflow.com/a/11158224
 import os, sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-usr = os.environ.get('USERNAME')
+usr = os.environ.get('USER')
 print(usr)
 
 import argparse
