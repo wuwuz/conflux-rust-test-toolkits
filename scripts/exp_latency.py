@@ -4,6 +4,8 @@
 # source: https://stackoverflow.com/a/11158224
 import os, sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
+usr = os.environ.get('USERNAME')
+print(usr)
 
 import argparse
 from remote_simulate import RemoteSimulate, pssh, kill_remote_conflux, execute
@@ -72,16 +74,16 @@ class LatencyExperiment:
         remote_simulate_options["nodes_per_host"] = 1
         remote_simulate_options["storage_memory_gb"] = 2
         remote_simulate_options["connect_peers"] = 4
-        remote_simulate_options["tps"] = 4000
+        remote_simulate_options["tps"] = 2000
 
         OptionHelper.add_options(parser, remote_simulate_options)
         self.options = parser.parse_args()
 
         print(os.path.abspath(os.getcwd()))
-        if os.path.getsize("~/genesis_secrets.txt") % 65 != 0:
+        if os.path.getsize("/home/" + usr + "/genesis_secrets.txt") % 65 != 0:
             print("genesis secrets account error, file size should be multiple of 65")
             exit()
-        self.options.txgen_account_count = int((os.path.getsize("~/genesis_secrets.txt")/65) //
+        self.options.txgen_account_count = int((os.path.getsize("/home/" + usr + "/genesis_secrets.txt")/65) //
                                                (self.options.vms * self.options.nodes_per_host))
 
     def run(self):
